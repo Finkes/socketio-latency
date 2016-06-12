@@ -5,12 +5,35 @@
     <script>
         var time = null;
         var socket = io();
+        var timer = 0;
+        var latency = [];
+        var size = 1000;
+        var data  = '';
+        function byteCount(s) {
+            return encodeURI(s).split(/%..|./).length - 1;
+        }
+        
+        for(var i =0 ; i < size; i++){
+            data += ''+i;
+        }
+            
         var handleEvent = function(){
             if(time !== null){
-                console.log(new Date() - time);
+                var delta = new Date() - time;
+                latency.push(delta);
+                timer += delta;
+            }
+            if(timer >= 1000){
+                timer = 0;
+                var sum = 0;
+                latency.forEach(function(element){
+                    sum += element;
+                });
+                console.log('avg:'+sum/latency.length + ',' + latency.length + ',' + byteCount(data) + 'bytes');
+                latency = [];
             }
             time = new Date();
-            socket.emit('data', 'some random data');
+            socket.emit('data', data);
         };
         
         handleEvent();
